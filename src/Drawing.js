@@ -1,5 +1,8 @@
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import MyCanvas from "./MyCanvas";
+import io from 'socket.io-client';
+import { Views } from "flowbite-react/lib/esm/components/Datepicker/helpers.js";
 
 function Drawing({modalId, nextModalId}){
     const { roomId } = useParams();
@@ -9,7 +12,8 @@ function Drawing({modalId, nextModalId}){
     const [view, setView] = useState(true)
     const [counter, setCounter] = useState(180)
     const [timer, setTimer] = useState("0:00")
-    const [canvas, setCanvas] = useState(<canvas className="m-auto size-5/6 bg-white"></canvas>)
+    // const [canvas, setCanvas] = useState(<canvas className="m-auto size-5/6 bg-white"></canvas>)
+    // const myCanvas = require('./MyCanvas');
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -46,7 +50,7 @@ function Drawing({modalId, nextModalId}){
 
     //placeholder until messages can be sent between clients
     function sendMessage(){}
-
+    // const theCanvas = <MyCanvas roomId={roomId} cd={view} />;
     if(view){
         return (
             <div>
@@ -95,7 +99,11 @@ function Drawing({modalId, nextModalId}){
                         </section>
                     </form>
 
-                    <div className="canvas col-start-2 col-span-2 row-start-2 row-span-2">{canvas}</div>
+                    {/* <div className="canvas col-start-2 col-span-2 row-start-2 row-span-2">{canvas}</div> */}
+                    <div className="col-start-2 col-span-2 row-start-2 row-span-2">
+                        <MyCanvas roomId={roomId} cd={true}/>
+                        {/* <theCanvas/> */}
+                    </div>
 
                     <div data-modal-target={nextModalId} data-modal-show={nextModalId} data-modal-hide={modalId} className="brown-button w-fit col-start-4 row-start-3" >Submit Drawing</div>
                 </div>
@@ -119,7 +127,11 @@ function Drawing({modalId, nextModalId}){
                 <p className="timer row-start-3">{timer}</p>
 
                 <div className="col-start-2 col-span-2 row-span-3">
-                    <div className="canvas col-start-2 col-span-2 row-start-2 row-span-2">{canvas}</div>
+                    {/* <div className="canvas col-start-2 col-span-2 row-start-2 row-span-2">{canvas}</div> */}
+                    <div className="col-start-2 col-span-2 row-start-2 row-span-2">
+                        <MyCanvas roomId={roomId} cd={false}/>
+                        {/* <myCanvas/> */}
+                    </div>
                     <p>User {artist} is drawing</p>
                 </div>
                 
@@ -145,5 +157,6 @@ function Drawing({modalId, nextModalId}){
         </div>
     );
 }
+
 
 export default Drawing;
