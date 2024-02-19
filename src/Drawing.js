@@ -4,9 +4,6 @@ import io from 'socket.io-client';
 import './output.css';
 
 var theView;
-function setSetView(v){theView=v}
-function getView(){return theView;}
-
 
 function Drawing({modalId, nextModalId}){
     const { roomId } = useParams();
@@ -14,7 +11,7 @@ function Drawing({modalId, nextModalId}){
     const [tricksters, setTricksters] = useState(["user_1", "user_2", "user_4", "user_5", "user_6", "user_7", "user_8", "user_9"]);
     const [category, setCategory] = useState({category: "Animals"});
     const [view, setView] = useState(true)
-    setSetView(view);
+    theView = view;
     const [counter, setCounter] = useState(180)
     const [timer, setTimer] = useState("0:00")
     // const [canvas, setCanvas] = useState(<canvas className="m-auto size-5/6 bg-white"></canvas>)
@@ -40,7 +37,7 @@ function Drawing({modalId, nextModalId}){
     //temporary function to test both views at once
     function swapView() {
         setView(() => {
-            setSetView(!view)
+            theView = !view;
             return !view;
         });
     }
@@ -211,14 +208,14 @@ function MyCanvas() {
     };
 
     const handleMouseDown = (e) => {
-        if (!getView()) return;
+        if (!theView) return;
         const pos = getMousePos(canvasRef.current, e);
         setLastPos(pos);
         setDrawing(true);
     };
 
     const handleMouseMove = (e) => {
-        if (!drawing || !getView()) return;
+        if (!drawing || !theView) return;
         const pos = getMousePos(canvasRef.current, e);
         if (lastPos) {
             drawLine(lastPos.x, lastPos.y, pos.x, pos.y);
