@@ -1,8 +1,12 @@
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import MyCanvas from "./MyCanvas";
 import io from 'socket.io-client';
-import { Views } from "flowbite-react/lib/esm/components/Datepicker/helpers.js";
+import './output.css';
+
+var theView;
+function setSetView(v){theView=v}
+function getView(){return theView;}
+
 
 function Drawing({modalId, nextModalId}){
     const { roomId } = useParams();
@@ -10,10 +14,10 @@ function Drawing({modalId, nextModalId}){
     const [tricksters, setTricksters] = useState(["user_1", "user_2", "user_4", "user_5", "user_6", "user_7", "user_8", "user_9"]);
     const [category, setCategory] = useState({category: "Animals"});
     const [view, setView] = useState(true)
+    setSetView(view);
     const [counter, setCounter] = useState(180)
     const [timer, setTimer] = useState("0:00")
     // const [canvas, setCanvas] = useState(<canvas className="m-auto size-5/6 bg-white"></canvas>)
-    // const myCanvas = require('./MyCanvas');
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -36,6 +40,7 @@ function Drawing({modalId, nextModalId}){
     //temporary function to test both views at once
     function swapView() {
         setView(() => {
+            setSetView(!view)
             return !view;
         });
     }
@@ -50,7 +55,7 @@ function Drawing({modalId, nextModalId}){
 
     //placeholder until messages can be sent between clients
     function sendMessage(){}
-    // const theCanvas = <MyCanvas roomId={roomId} cd={view} />;
+
     if(view){
         return (
             <div>
@@ -99,11 +104,7 @@ function Drawing({modalId, nextModalId}){
                         </section>
                     </form>
 
-                    {/* <div className="canvas col-start-2 col-span-2 row-start-2 row-span-2">{canvas}</div> */}
-                    <div className="col-start-2 col-span-2 row-start-2 row-span-2">
-                        <MyCanvas roomId={roomId} cd={true}/>
-                        {/* <theCanvas/> */}
-                    </div>
+                    <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas/></div>
 
                     <div data-modal-target={nextModalId} data-modal-show={nextModalId} data-modal-hide={modalId} className="brown-button w-fit col-start-4 row-start-3" >Submit Drawing</div>
                 </div>
@@ -127,11 +128,7 @@ function Drawing({modalId, nextModalId}){
                 <p className="timer row-start-3">{timer}</p>
 
                 <div className="col-start-2 col-span-2 row-span-3">
-                    {/* <div className="canvas col-start-2 col-span-2 row-start-2 row-span-2">{canvas}</div> */}
-                    <div className="col-start-2 col-span-2 row-start-2 row-span-2">
-                        <MyCanvas roomId={roomId} cd={false}/>
-                        {/* <myCanvas/> */}
-                    </div>
+                    <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas/></div>
                     <p>User {artist} is drawing</p>
                 </div>
                 
@@ -156,7 +153,106 @@ function Drawing({modalId, nextModalId}){
             </div>
         </div>
     );
+
 }
 
+function MyCanvas() {
+    const { roomId } = useParams();
+    const canvasRef = useRef(null);
+    const [drawing, setDrawing] = useState(false);
+    // const [canDraw, setCanDraw] = useState(false);
+    const [lastPos, setLastPos] = useState(null);
+    const socket = useRef(null);
+
+    useEffect(() => {
+        socket.current = io('http://localhost:8000');
+        socket.current.on('connect', () => {
+            console.log("Connected to Socket.IO server");
+            socket.current.emit('joinRoom', roomId);
+        });
+
+        // socket.current.on('drawingPrivilege', (hasPrivilege) => {
+        //     setCanDraw(hasPrivilege);
+        //     console.log(`Received drawing privilege: ${hasPrivilege}`);
+        // });
+
+        socket.current.on('drawing', (data) => {
+            drawLine(data.x0, data.y0, data.x1, data.y1);
+        });
+
+        return () => {
+            socket.current.disconnect();
+        };
+    }, [roomId]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+
+        context.lineWidth = 2;
+        context.strokeStyle = 'black';
+    }, []);
+
+    const getMousePos = (canvas, evt) => {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: evt.clientX - rect.left,
+            y: evt.clientY - rect.top
+        };
+    };
+
+    const drawLine = (x0, y0, x1, y1) => {
+        const context = canvasRef.current.getContext('2d');
+        context.beginPath();
+        context.moveTo(x0, y0);
+        context.lineTo(x1, y1);
+        context.stroke();
+        context.closePath();
+    };
+
+    const handleMouseDown = (e) => {
+        if (!getView()) return;
+        const pos = getMousePos(canvasRef.current, e);
+        setLastPos(pos);
+        setDrawing(true);
+    };
+
+    const handleMouseMove = (e) => {
+        if (!drawing || !getView()) return;
+        const pos = getMousePos(canvasRef.current, e);
+        if (lastPos) {
+            drawLine(lastPos.x, lastPos.y, pos.x, pos.y);
+            const drawData = { room: roomId, x0: lastPos.x, y0: lastPos.y, x1: pos.x, y1: pos.y };
+            console.log('Emitting draw event', drawData);
+            socket.current.emit('draw', drawData);
+            setLastPos(pos);
+        }
+    };
+
+    const handleMouseUp = () => {
+        setDrawing(false);
+        setLastPos(null);
+    };
+
+    const handleMouseOut = () => {
+        if (drawing) {
+            setDrawing(false);
+            setLastPos(null);
+        }
+    };
+
+    return (
+        <canvas
+            ref={canvasRef}
+            width={443}
+            height={350}
+            className="bg-white shadow-lg border-2 border-gray-300 m-10"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseOut={handleMouseOut}
+        ></canvas>
+    );
+}
 
 export default Drawing;
