@@ -1,68 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
+import { useSocket } from './context/SocketContext';
 
-const SOCKET_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER_URL;
-
-function Lobby({setViewCurr, setViewNext, socket, setSocket, isHost, setIsHost, guestName}) {
+function Lobby({ setViewCurr, setViewNext, isHost, setIsHost, guestName, setSocket }) {
   const navigate = useNavigate();
   const { roomId } = useParams();
-  // ellen: guestName passed as a prop from Host.js and extracted in Room.js passed to Lobby.js as a prop
-  // const { roomId, guestName } = useParams();
   const [players, setPlayers] = useState([]);
-  // ellen: moved to Room.js so each game page can access these
-  // const [socket, setSocket] = useState(null);
-  // const [isHost, setIsHost] = useState(false);
+  const { socket } = useSocket();
+  const joinedRoom = useRef(false);
 
   useEffect(() => {
-    // Initialize socket connection
-    const newSocket = io(SOCKET_SERVER_URL);
-    setSocket(newSocket);
+    if (!socket) return;
 
-    let mySocketId = null;
-    newSocket.on('yourSocketId', ({ id }) => {
-      mySocketId = id;
-      newSocket.emit('joinRoom', { userid: mySocketId, room: roomId, userName: guestName });
-    });
+    // Initialize socket connection only if it's not already available
+    if (!socket.connected) {
+      const newSocket = socket.connect(); // Assuming connect method initializes the connection
+      setSocket(newSocket); // Update the socket in the state if needed
+    }
 
+    const attemptJoinRoom = () => {
+      if (joinedRoom.current) {
+        console.log("Already joined the room, skipping.");
+        return; // Skip if already attempted to join
+      }
+      const userid = socket.id;
+      if (!userid) {
+        console.error("Socket ID is not available yet.");
+        return;
+      }
+      socket.emit('joinRoom', { userid, room: roomId, userName: guestName });
+      joinedRoom.current = true; // Mark as joined
+    };
 
-    // Setup event listeners for socket
-    newSocket.on('updateUserList', (Updatedplayers) => {
-      setPlayers(Updatedplayers);
-      // Update isHost based on the updated players list and mySocketId
-      const user = Updatedplayers.find((player) => player.id === mySocketId);
-      console.log(Updatedplayers);
-      setIsHost(user ? user.isHost : false);
-    });
+    // Subscribe to socket events
+    const subscribeToEvents = () => {
+      socket.on('updateUserList', (updatedPlayers) => {
+        setPlayers(updatedPlayers);
+        const user = updatedPlayers.find((player) => player.id === socket.id);
+        setIsHost(user ? user.isHost : false);
+      });
 
-    newSocket.on('gameStarted', () => {
-      // Conditional rendering for the game (i.e., Canvas, Results, Scoreboard)
-      alert('Game Start');
-      handleNext();
-    });
+      socket.on('gameStarted', () => {
+        alert('Game Start');
+        handleNext();
+      });
+
+      attemptJoinRoom();
+    };
+
+    subscribeToEvents();
 
     return () => {
-      newSocket.disconnect();
+      // Clean up the event listeners when the component unmounts
+      socket.off('updateUserList');
+      socket.off('gameStarted');
     };
-  }, [navigate, roomId, guestName]); // Removed WebSocketID from the dependency array as it's no longer needed
+  }, [socket, navigate, roomId, guestName, setIsHost, setSocket]); // Keep the dependencies as is to ensure correctness
 
-  
   function handleLeaveClick() {
-    // Navigate back to home or the previous page
     navigate('/');
   }
 
   function handleStartClick() {
-    // Emit startGame event if current user is the host
     if (isHost) {
       socket.emit('startGame', roomId);
     } else {
       alert('Only the host can start the game.');
     }
-    // please don't remove, does not break anything but needed for testing, see issue #43
-    // npm start -> NODE_ENV set to "development"
-    // npm build -> NODE_ENV set to "production"
-    // npm test -> NODE_ENV set to "test"
+    // Environment check for testing
     if (process.env.NODE_ENV === "test") {
       handleNext();
     }
@@ -72,32 +77,31 @@ function Lobby({setViewCurr, setViewNext, socket, setSocket, isHost, setIsHost, 
     setViewCurr(false);
     setViewNext(true);
   }
-
-    //procedurally generate table/list for users 
-    return (
-        <div className="background custom-text">
-            <div>
-                <h1 className="large-text">Fictionary</h1>
-                <h1 className="header mb-5">Lobby</h1>
-                <p className="sub-header pt-0 mb-10">Room: {roomId}</p>
-            </div>
-            <div>
-                <ul className = "grid grid-cols-2 gap-10" >
-                    {players.map((player, i) => (
-                      <li className="large-text pt-0 mb-0" key={i}>
-                        {player.name} {player.isHost ? '(Host)' : ''}
-                      </li>
-                    ))}
-                </ul>
-            </div>
-            <div>
-                <button onClick={handleLeaveClick} className="red-button mx-20 mt-10">Leave</button>
-                {isHost && (
-                  <button onClick={handleStartClick} className="blue-button mx-20 mt-10" >Start</button>
-                )}
-            </div>
-        </div>
-    );
+  //procedurally generate table/list for users 
+  return (
+    <div className="background custom-text">
+      <div>
+        <h1 className="large-text">Fictionary</h1>
+        <h1 className="header mb-5">Lobby</h1>
+        <p className="sub-header pt-0 mb-10">Room: {roomId}</p>
+      </div>
+      <div>
+        <ul className="grid grid-cols-2 gap-10" >
+          {players.map((player, i) => (
+            <li className="large-text pt-0 mb-0" key={i}>
+              {player.name} {player.isHost ? '(Host)' : ''}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <button onClick={handleLeaveClick} className="red-button mx-20 mt-10">Leave</button>
+        {isHost && (
+          <button onClick={handleStartClick} className="blue-button mx-20 mt-10" >Start</button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default Lobby;

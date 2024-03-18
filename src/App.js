@@ -1,5 +1,6 @@
 import './App.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SocketProvider } from './context/SocketContext';
 import Home from "./Home";
 import Room from "./Room";
 import Results from './Results';
@@ -16,6 +17,7 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
+      <SocketProvider>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/room/:roomId" element={<Room />} />
@@ -34,6 +36,7 @@ function App() {
           {/* ellen: setup route by adding path (url) and element (react component) */}
           {/* example: <Route path="/my/URL" element={<MyComponent />} */}
         </Routes>
+        </SocketProvider>
       </BrowserRouter>
     </div>
   );
