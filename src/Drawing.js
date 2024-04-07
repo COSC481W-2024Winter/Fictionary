@@ -13,17 +13,17 @@ function Drawing({viewCurr, setViewCurr, setViewNext, socket, setSocket, artist,
    //const [artist, setArtist] = useState("user_3");
     const [tricksters, setTricksters] = useState(["user_1", "user_2", "user_4", "user_5", "user_6", "user_7", "user_8", "user_9"]);
     const [category, setCategory] = useState({category: "Animals"});
-    const [view, setView] = useState(isHost)
+    const [view, setView] = useState(isHost);
     theView = view;
     theSocket = socket;
     const [paintColor, setPaintColor] = useState('black');
     const [brushSize, setBrushSize] = useState(2);
-    const [counter, setCounter] = useState(180)
-    const [timer, setTimer] = useState("0:00")
+    const [counter, setCounter] = useState(180);
+    const [timer, setTimer] = useState("0:00");
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [isDrawingButtonDisabled, setIsDrawingButtomDisabled] = useState(false);
+    const [playersInt, setPlayersInt] = useState(players.length - 1);
     
-    
-
-    // const [canvas, setCanvas] = useState(<canvas className="m-auto size-5/6 bg-white"></canvas>)
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -53,14 +53,19 @@ function Drawing({viewCurr, setViewCurr, setViewNext, socket, setSocket, artist,
         });
     }
 
-    //placeholder until the drawing can actually be sent to the backend
-    const submitDrawing = useCallback(() => {
-        // navigate(`/voting/${roomId}`);
+    const handleNextBtn = useCallback(() => {
         setViewNext(true);
         setViewCurr(false);
         setCounter(180);
-        /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
+         /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
         // setCounter(10);
+    }, [setViewCurr, setViewNext, setCounter]);
+
+    //placeholder until the drawing can actually be sent to the backend
+    const submitDrawing = useCallback(() => {
+        //once the drawing is submitted, users can submit guesses
+        setIsButtonDisabled(false);
+        setIsDrawingButtomDisabled(true);
     }, [setViewCurr, setViewNext, setCounter]);
 
     useEffect(() => {
@@ -88,9 +93,18 @@ function Drawing({viewCurr, setViewCurr, setViewNext, socket, setSocket, artist,
         globalBrushSize = brushSize;
     });
 
-    
+    const submitGuess = () => {
+        socket.emit('submitted');
+        setIsButtonDisabled(true);
+       
+    };
 
-    if(view){
+    socket.on('guess go next', function() {
+        handleNextBtn();
+      });
+
+    function ArtistView({}) {
+        // This will render the host view
         return (
             <div>
                 {/* button for testing both views */}
@@ -151,53 +165,61 @@ function Drawing({viewCurr, setViewCurr, setViewNext, socket, setSocket, artist,
             </div>
         );
     }
-    return (
-        <div>
-            {/* button for testing both views */}
-            <div className="bg-[#73bda8] text-[#6f5643] font-sans" onClick={swapView}>Switch to "Artist" View</div>
 
-            <div className="background custom-text grid grid-cols-4 grid-rows-4">
-                <div>
-                    <p className="sub-headerl">Fictionary</p>
-                    <p>Room: {roomId}</p>
-                </div>
-                <div className="row-start-2">
-                    <p className="header">CATEGORY IS:</p>
-                    <p className="large-text">{category.category}</p>
-                </div>
-                <p className="timer row-start-3">{timer}</p>
-
-                <div className="col-start-2 col-span-2 row-span-3">
-                    <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas/></div>
-                    <p>User {artist.name} is drawing</p>
-                </div>
-                
-                <div className = "col-start-4 row-span-2">
-                    {/*placeholder until the actual chatroom can be displayed*/}
-                    <p className="bg-[#6f5643] text-[#ece6c2] size-full">Chat Room</p>
+    function UserView({}) {
+        // This will render the user view
+        return (
+            <div>
+                {/* button for testing both views */}
+                <div className="bg-[#73bda8] text-[#6f5643] font-sans" onClick={swapView}>Switch to "Artist" View</div>
+    
+                <div className="background custom-text grid grid-cols-4 grid-rows-4">
                     <div>
-                        <form>
-                            <p>
-                                <input className="text-entry-box w-full" type="text" id="message" name="message" placeholder="Message..."/>
-                            </p>
-                        </form>
-                        <div className="blue-button"onClick={sendMessage}>Send</div>
+                        <p className="sub-headerl">Fictionary</p>
+                        <p>Room: {roomId}</p>
                     </div>
+                    <div className="row-start-2">
+                        <p className="header">CATEGORY IS:</p>
+                        <p className="large-text">{category.category}</p>
+                    </div>
+                    <p className="timer row-start-3">{timer}</p>
+    
+                    <div className="col-start-2 col-span-2 row-span-3">
+                        <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas/></div>
+                        <p>User {artist.name} is drawing</p>
+                    </div>
+                    
+                    <div className = "col-start-4 row-span-2">
+                        {/*placeholder until the actual chatroom can be displayed*/}
+                        <p className="bg-[#6f5643] text-[#ece6c2] size-full">Chat Room</p>
+                        <div>
+                            <form>
+                                <p>
+                                    <input className="text-entry-box w-full" type="text" id="message" name="message" placeholder="Message..."/>
+                                </p>
+                            </form>
+                            <div className="blue-button"onClick={sendMessage}>Send</div>
+                        </div>
+                    </div>
+    
+                    <form className="row-start-4 col-span-4">
+                        <p>
+                            <input className="text-entry-box w-5/6" type="text" id="guess" name="guess" placeholder="Enter Your Guess Here"/>
+                        </p>
+                        <div className="blue-button" onClick={submitGuess}> Submit Your Guess </div>
+                    </form>
                 </div>
-
-                <form className="row-start-4 col-span-4">
-                    <p>
-                        <input className="text-entry-box w-5/6" type="text" id="guess" name="guess" placeholder="Enter Your Guess Here"/>
-                    </p>
-                </form>
             </div>
-        </div>
-    );
+        );
+    }
+    
 
+if (isHost) {
+    return <ArtistView />;
+} else {
+    return <UserView />;
 }
-
-
-
+}
 function MyCanvas() {
     const { roomId } = useParams();
     const canvasRef = useRef(null);
@@ -292,3 +314,4 @@ function MyCanvas() {
 }
 
 export default Drawing;
+
