@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 
 
-function Categories({viewCurr, setViewCurr, setViewNext, players, setPlayers, isHost, setIsHost,round,setRound}) {
+function Categories({viewCurr, setViewCurr, setViewNext, players, setPlayers, isHost, setIsHost,round,setRound, socket}) {
     const { roomId } = useParams();
     //const [categories, setCategories] = useState([{category: "Animals"}, {category: "Objects"}, {category: "Buildings"}]);
     const [categories, setCategories] = useState(["1", "2", "3"]);
@@ -10,8 +10,7 @@ function Categories({viewCurr, setViewCurr, setViewNext, players, setPlayers, is
     /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
     // const [counter, setCounter] = useState(10);
     const [timer, setTimer] = useState("0:00");
-    const [playersInt, setPlayersInt] = useState(players.length);
-    const [isButtonDisabled, setButtonDisabled] = useState(false);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
     const handleNextBtn = useCallback (() => {
         setViewNext(true);
@@ -43,20 +42,14 @@ function Categories({viewCurr, setViewCurr, setViewNext, players, setPlayers, is
 
     //this makes it so the page will only nav if all users have submitted
     const handleClick = () => {
-        handleNextBtn(); /*
-       //decrement player
-        setPlayersInt(playersInt-1);
-        //add additional var so we can use it in real time
-        const updatedPlayersInt = playersInt-1;
-        console.log(updatedPlayersInt);
-        //disable buttons
-        setButtonDisabled(true);
-        if (updatedPlayersInt <= 0) {
-            handleNextBtn();
-        }
-    */
+        socket.emit('category submitted');
+        setIsButtonDisabled(true);
     };
 
+    socket.on('cat go next', function() {
+        handleNextBtn();
+      });
+      
     //placeholder until votes can be sent to the backend
     useEffect(() => {
         if (counter <= 0) {
