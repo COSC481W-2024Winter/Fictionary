@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-function Scoreboard({setViewCurr, setViewNext, players, setPlayers, setViewNextRound, setViewFinalScore, roundCount, usedIndexes, setRoundCount, setUsedIndexes}) {
+function Scoreboard({setViewCurr, setViewNext, players, setPlayers, setViewNextRound, setViewFinalScore, roundCount, usedIndexes, setRoundCount, setUsedIndexes, socket}) {
     const { roomId } = useParams();
     // Note: moved variables to Room.js
     // const [players, setPlayers] = useState([
@@ -95,8 +95,10 @@ function Scoreboard({setViewCurr, setViewNext, players, setPlayers, setViewNextR
     }
 
     function handleNextBtn() {
-        setViewCurr(false);
-        // if 3 rounds have occured
+        //setViewCurr(false);
+        socket.emit('score submitted');
+
+        /*
         if(roundCount == 3) {
             setViewFinalScore(true);
         // if ever player has gotten a turn to draw, start next round 
@@ -107,6 +109,7 @@ function Scoreboard({setViewCurr, setViewNext, players, setPlayers, setViewNextR
         } else {
             setViewNext(true);
         }
+        */
         }
 
     return (
