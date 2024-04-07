@@ -68,10 +68,12 @@ const Canvas = () => {
   );
 };
 
-function Voting({viewCurr, setViewCurr, setViewNext}) {
+
+function Voting({viewCurr, setViewCurr, setViewNext, players, socket}) {
     // const { roomId } = useParams();
     const [data, setData] = useState(["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"]);
     const [seconds, setSeconds] = useState(60);
+    const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
     // const [seconds, setSeconds] = useState(10);
  
@@ -82,6 +84,16 @@ function Voting({viewCurr, setViewCurr, setViewNext}) {
       /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
       // setSeconds(10);
     }, [setViewCurr, setViewNext, setSeconds]);
+
+    const submitVote = () => {
+      //disable buttons
+      setIsButtonDisabled(true);
+      socket.emit('vote submitted');
+    };
+
+    socket.on('vote go next', function() {
+      handleNextBtn();
+    });
 
     return (
       <div className="background custom-text">
