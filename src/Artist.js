@@ -1,43 +1,27 @@
 import React from 'react';
 import { useState, useEffect, useCallback } from "react";
+import io from 'socket.io-client';
 
 
-function Artist({viewCurr, setViewCurr, setViewNext, players, setPlayers, isHost, setIsHost, usedIndexes, setUsedIndexes, artist, setArtist}) {
+function Artist({viewCurr, setViewCurr, setViewNext, players, setPlayers, isHost, setIsHost, usedIndexes, setUsedIndexes, artist, setArtist, socket}) {
     const [count, setCount] = useState(null);
-    const playersCopy = [...players];
+
 
     const handleNext = useCallback(() => {
       setViewNext(true);
       setViewCurr(false);
   }, [setViewCurr, setViewNext]);
 
-    const getRandomIndex = (maxIndex) => {
-        let ranNum;
-        do {
-        ranNum = Math.floor(Math.random() * maxIndex) + 1;
-        } while (usedIndexes.includes(ranNum));
-
-        setUsedIndexes(usedIndexes => [...usedIndexes, ranNum]);
-        return ranNum;
-      };
-
     const artistPicker = () => {
-        let randomNum = getRandomIndex(playersCopy.length);
-        let newArtist = playersCopy[randomNum-1]; 
-        let previousHost = playersCopy.find((player) => player.isHost);
-        setArtist(newArtist);
-        if (newArtist) {
-          newArtist.isHost = true;
-          setIsHost(newArtist ? newArtist.isHost : false);
-        }
-        
-        //take away previous host rights
-        if (previousHost) {
-          previousHost.isHost = false;
-          setIsHost(previousHost.isHost);
-        }
-        //update players array to be accurate
-        setPlayers([...playersCopy]);
+        socket.emit('pick artist');
+
+        socket.on('artistPicked', (newArtist, index, previousHostIndex) => {
+          const user = players.find((player) => player.id === newArtist.id);
+          setArtist(user);
+          setIsHost(user);
+          socket.emit('updateHost', index, previousHostIndex);
+      });
+      
     };
 
     useEffect(() => {
@@ -65,7 +49,12 @@ function Artist({viewCurr, setViewCurr, setViewNext, players, setPlayers, isHost
 
     return(
         <div className="background custom-text flex flex-col space-y-44 text-center py-12 text-6xl ">
-           <button id="nextButton" data-testid= "next" onClick={handleNext} style={{ display: 'none' }}>next</button>
+           <button id= "nextButton" 
+           data-testid= "next" 
+           onClick={handleNext} 
+           style={{ display: 'none' }}>
+            next
+            </button>
           <div>
             <div> NEXT ARTIST IS <br /> <br /> </div>
                <div className="animate-bounce">{artist && artist.name} </div>
