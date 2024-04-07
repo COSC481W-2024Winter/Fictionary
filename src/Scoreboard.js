@@ -93,24 +93,24 @@ function Scoreboard({setViewCurr, setViewNext, players, setPlayers, setViewNextR
             );
         }
     }
-
-    function handleNextBtn() {
-        //setViewCurr(false);
+    function handleSubmit() {
         socket.emit('score submitted');
+    }
 
-        /*
-        if(roundCount == 3) {
-            setViewFinalScore(true);
-        // if ever player has gotten a turn to draw, start next round 
-        } else if(players.length == usedIndexes.length) {
-            setRoundCount(roundCount + 1);
-            setUsedIndexes([]);
-            setViewNextRound(true);
-        } else {
-            setViewNext(true);
-        }
-        */
-        }
+    socket.on('game over', () => {
+        setViewCurr(false);
+        setViewFinalScore(true);
+    });
+
+    socket.on('next round', () => {
+        setViewCurr(false);
+        setViewNextRound(true);
+    });
+
+    socket.on('score go next', () => {
+        setViewCurr(false);
+        setViewNext(true);
+    });
 
     return (
         <div className="background custom-text pb-4 px-6 min-h-screen max-h-max">
@@ -135,7 +135,7 @@ function Scoreboard({setViewCurr, setViewNext, players, setPlayers, setViewNextR
                 </div>
                 <div className="flex flex-col justify-center items-center mr-6 my-6 gap-6">
                     <GameMessage />
-                    <button onClick={handleNextBtn} type="button" className="blue-button cursor-pointer size-fit px-4 py-2" data-testid="scoreboard-ctn-btn" >Continue</button>
+                    <button onClick={handleSubmit} type="button" className="blue-button cursor-pointer size-fit px-4 py-2" data-testid="scoreboard-ctn-btn" >Continue</button>
                 </div>
             </div>
         </div>

@@ -77,10 +77,13 @@ function Results({setViewCurr, setViewNext, socket, setSocket, players, setPlaye
             );
         }
     }
-
-    function handleNextBtn() {
+    socket.on('result go next', () => {
         setViewCurr(false);
         setViewNext(true);
+    });
+
+    function handleSubmit() {
+        socket.emit('results submitted');
     }
 
     return(
@@ -107,7 +110,7 @@ function Results({setViewCurr, setViewNext, socket, setSocket, players, setPlaye
                         <BonusMessage className="flex shrink"/>
                     </div>
                     <p className="sub-header">Your Score: {score}</p>
-                    <button onClick={handleNextBtn} type="button" className="blue-button size-fit px-4 py-2 mt-0" data-testid="results-ctn-btn" >Continue</button>
+                    <button onClick={handleSubmit} type="button" className="blue-button size-fit px-4 py-2 mt-0" data-testid="results-ctn-btn" >Continue</button>
                 </div>
             </div>
         </div>

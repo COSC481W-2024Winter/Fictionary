@@ -113,7 +113,7 @@ function Voting({viewCurr, setViewCurr, setViewNext, players, socket}) {
               </div>
               <div className="flex justify-center brown-button">
                 <div>
-                  <button onClick={handleNextBtn} type="button" >
+                  <button onClick={submitVote} type="button" >
                     Submit
                   </button>
                 </div>
