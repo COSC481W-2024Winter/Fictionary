@@ -36,7 +36,7 @@ function Drawing({ viewCurr, setViewCurr, setViewNext, isHost, setIsHost, player
                 setIsHost(hasPrivilege);
             });
 
-            socket.on('categorySelected', (selectedCategory) => {
+            socket.on('currentCategory', (selectedCategory) => {
                 setCategory({ category: selectedCategory });
             });
 
@@ -51,7 +51,7 @@ function Drawing({ viewCurr, setViewCurr, setViewNext, isHost, setIsHost, player
             return () => {
                 socket.off('updateUserList');
                 socket.off('drawingPrivilege');
-                socket.off('categorySelected');
+                socket.off('currentCategory');
                 socket.off('gameStarted');
                 socket.off('error');
             };
