@@ -39,6 +39,10 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                 setArtist(currentArtist);
             });
     
+            socket.on('updateGuesses', (roomGuesses) => {
+                setGuesses(roomGuesses);
+            });
+
             socket.on('drawingPrivilege', (hasPrivilege) => {
                 setIsHost(hasPrivilege);
             });
@@ -56,13 +60,14 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
             });
     
             socket.on('currentCategory', (selectedCategory) => {
-  setCategory({ category: selectedCategory });
-});
+                setCategory({ category: selectedCategory });
+            });
             // Request the current category when the component mounts
             socket.emit('requestCurrentCategory', roomId);
     
             return () => {
                 socket.off('updateUserList');
+                socket.off('updateGuesses');
                 socket.off('drawingPrivilege');
                 socket.off('currentCategory');
                 socket.off('gameStarted');
@@ -143,17 +148,18 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
         do{
             if(socket){
                 if(view){
-                    setGuesses([...guesses, {text: category.category, userId: socket.id, voterIds: []}]);
+                    const guess = word;
+                    socket.emit('submitGuess', {room: roomId, guess: guess});
+                    console.log(guess);
                 }
                 else { 
-                   const guess = document.getElementById("guess").value;
-                  if(isDrawingSubmitted && !isGuessSubmitted) {
-                   setGuesses([...guesses, {text: guess, userId: socket.id, voterIds: []}]);
-                   setIsGuessSubmitted(true);
-                   socket.emit('guessSubmitted', { room: roomId });
-        }
-                  
-             
+                    const guess = document.getElementById("guess").value;
+                    if(isDrawingSubmitted && !isGuessSubmitted) {
+                        socket.emit('submitGuess', {room: roomId, guess: guess});
+                        setIsGuessSubmitted(true);
+                        socket.emit('guessSubmitted', { room: roomId });
+                        console.log(guess);
+                    }
                 }
             }
         } while (!socket);
