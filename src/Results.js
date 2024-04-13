@@ -71,11 +71,11 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                     socket.off('error');
                 };
             }
-        }, [socket, roomId]);
+        }, [socket, roomId, setGuesses, setPlayers, setScore]);
         
         useEffect(() => {
             findCorrect();
-        });
+        }, []);
     
     function MyCanvas() {
         return (
@@ -120,7 +120,7 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 socket.off('resultsDone');
             };
         }
-    }, [socket]);
+    }, [socket, handleNextBtn]);
 
     return(
         <div className="background pt-4 custom-text min-h-screen max-h-max">

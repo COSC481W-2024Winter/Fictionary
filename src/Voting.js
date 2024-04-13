@@ -50,7 +50,7 @@ const Canvas = () => {
   );
 };
 
-function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses}) {
+function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, players, setPlayers}) {
     // Note: comment out guesses and setGuesses above, uncomment below to test whether buttons will display
     // const [guesses, setGuesses] = useState([
     //     {text: "one", userId: "user_1", voterIds: [{voterId: "user_3"}, {voterId: "user_6"}, {voterId: "user_9"}]},
@@ -69,9 +69,14 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses}) {
     // const [seconds, setSeconds] = useState(10);
     const { roomId } = useParams();
     const { socket } = useSocket();
+    const [authorId, setAuthorId] = useState(null);
+    const [voterId, setVoterId] = useState(null);
   
     const handleVoteSubmit = () => {
       setIsButtonDisabled(true);
+      if(!(authorId === null || voterId === null)){
+        socket.emit('updateScores', {room: roomId, authorId: authorId, voterId: voterId});
+      }
       socket.emit('voteSubmitted', { room: roomId});
     }
  
@@ -81,6 +86,10 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses}) {
 
           socket.on('updateGuesses', (roomGuesses) => {
             setGuesses(roomGuesses);
+          });
+
+          socket.on('updateUserList', (users) => {
+            setPlayers(users);
           });
 
           socket.on('votingDone', (data) => {
@@ -96,33 +105,22 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses}) {
           });
 
           return () => {
+              socket.off('updateUserList');
               socket.off('updateGuesses');
               socket.off('guessVotingDone');
               socket.off('gameStarted');
               socket.off('error');
           };
       }
-    }, [socket, roomId]);
+    }, [socket, roomId, setGuesses, setPlayers]);
 
     const changeGuesses = useCallback((e) => {
-      do{
-        if(socket){
-          setGuesses(guesses.map((guess) => {
-              if(guess.voterIds.find((voterId) => voterId === socket.id)){
-                let index = guess.voterIds.indexOf(socket.id);
-                guess.voterIds.splice(index, 1);
-              }
-          }));
-          setGuesses(guesses.map((guess) => {
-            if(guess.userId === e.key){
-              guess.voterIds[guess.voterIds.length] = [{voterId: socket.id}];
-            }
-          }));
-          socket.emit('changeGuesses', {room: roomId, guesses: guesses});
-        }
-      } while (!socket);
+      setAuthorId(e.key);
+      if(socket){
+        setVoterId(socket.id);
+        socket.emit('changeGuesses', {room: roomId, authorId: authorId, voterId: voterId});
+      }
     });
-
 
     const handleNextBtn = useCallback(() => {
       setViewNext(true);

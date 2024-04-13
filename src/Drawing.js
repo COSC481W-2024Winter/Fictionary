@@ -74,7 +74,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                 socket.off('error');
             };
         }
-    }, [socket, roomId, setIsHost]);
+    }, [socket, roomId, setIsHost, setArtist, setGuesses, setPlayers, setCategory]);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -145,24 +145,20 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
 
     // Note for testing: make sure you only try to submit the drawing of the current artist
     function submitGuess(){
-        do{
-            if(socket){
-                if(view){
-                    const guess = word;
+        if(socket){
+            if(view){
+                const guess = word;
+                socket.emit('submitGuess', {room: roomId, guess: guess});
+            }
+            else { 
+                const guess = document.getElementById("guess").value;
+                if(isDrawingSubmitted && !isGuessSubmitted) {
                     socket.emit('submitGuess', {room: roomId, guess: guess});
-                    console.log(guess);
-                }
-                else { 
-                    const guess = document.getElementById("guess").value;
-                    if(isDrawingSubmitted && !isGuessSubmitted) {
-                        socket.emit('submitGuess', {room: roomId, guess: guess});
-                        setIsGuessSubmitted(true);
-                        socket.emit('guessSubmitted', { room: roomId });
-                        console.log(guess);
-                    }
+                    setIsGuessSubmitted(true);
+                    socket.emit('guessSubmitted', { room: roomId });
                 }
             }
-        } while (!socket);
+        }
     }
 
     //placeholder until the drawing can actually be sent to the backend
