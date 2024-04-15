@@ -172,7 +172,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
 
     
     useEffect(() => {
-        if (counter <= 0) {
+        if (counter <= 0 && !(isDrawingSubmitted)) {
             submitDrawing();
         }
     }, [counter, viewCurr, submitDrawing]);
