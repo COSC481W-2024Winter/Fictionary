@@ -17,7 +17,7 @@ function Rules(){
     const ArtArray = [Cat_Select, Art_Drawing, Trick_Vote, Scoring];
     const [activeRule, setActiveRule,] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
-    const [isPictureVisible, setIsPictureVisible] = useState(true);
+    const [isPictureVisible, setIsPictureVisible] = useState(false);
 
 
     function handleClick() {
