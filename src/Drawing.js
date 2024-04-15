@@ -93,7 +93,7 @@ function Drawing({ viewCurr, setViewCurr, setViewNext, isHost, setIsHost, player
 
     useEffect(() => {
         if (counter <= 0) {
-            // submitDrawing();
+            submitDrawing();
         }
     }, [counter, viewCurr, submitDrawing]);
 
