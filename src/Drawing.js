@@ -133,7 +133,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
             console.log(response);
 
             const word = await response.json();
-            console.log(word);
+            console.log(`Drawing.js fetchWord: ${word}`);
             setWord(word);
         }
         fetchWord().catch(console.dir);
@@ -144,10 +144,12 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
 
 
     // Note for testing: make sure you only try to submit the drawing of the current artist
-    function submitGuess(){
+    function submitGuess () {
         if(socket){
             if(view){
-                const guess = word;
+                // use vanilla js to query the div's value (which is set to the word)
+                const guess = document.getElementById("grab-me!").getAttribute("value");
+                console.log(`Drawing.js guess: ${guess}`);
                 socket.emit('submitGuess', {room: roomId, guess: guess});
             }
             else { 
@@ -235,7 +237,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                     <div className="col-start-2 col-span-2 px-12">
                         <p className="sub-header">Fictionary</p>
                         <p className="pb-4">Room: {roomId}</p>
-                        <p className="header">WORD IS:</p>{/*Change to word -> return word */}
+                        <p className="header" id="grab-me!" value={word} >WORD IS:</p>{/*Change to word -> return word */}
                         <p className="large-text">{word}</p>
                     </div>
                     <p className="timer">{timer}</p>
