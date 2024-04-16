@@ -50,33 +50,51 @@ const Canvas = () => {
   );
 };
 
-function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses}) {
+function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, players, setPlayers}) {
+    // Note: comment out guesses and setGuesses above, uncomment below to test whether buttons will display
+    // const [guesses, setGuesses] = useState([
+    //     {text: "one", userId: "user_1", voterIds: [{voterId: "user_3"}, {voterId: "user_6"}, {voterId: "user_9"}]},
+    //     {text: "two", userId: "user_2", voterIds: []},
+    //     {text: "three", userId: "user_3", voterIds: []},
+    //     {text: "four", userId: "user_4", voterIds: []},
+    //     {text: "five", userId: "user_5", voterIds: []},
+    //     {text: "six", userId: "user_6", voterIds: [{voterId: "user_5"}]},
+    //     {text: "seven", userId: "user_7", voterIds: []},
+    //     {text: "eight", userId: "user_8", voterIds: []},
+    //     {text: "nine", userId: "user_9", voterIds: [{voterId: "user_2"}, {voterId: "user_4"}, {voterId: "user_7"}]}
+    // ]);
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [seconds, setSeconds] = useState(60);
     /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
     // const [seconds, setSeconds] = useState(10);
     const { roomId } = useParams();
     const { socket } = useSocket();
+    const [authorId, setAuthorId] = useState(null);
+    const [voterId, setVoterId] = useState(null);
   
-  const handleVoteSubmit = () => {
+    const handleVoteSubmit = () => {
       setIsButtonDisabled(true);
+      if(!(authorId === null || voterId === null)){
+        socket.emit('updateScores', {room: roomId, authorId: authorId, voterId: voterId});
+      }
       socket.emit('voteSubmitted', { room: roomId});
     }
-    useEffect(() => {
-      if (socket) {
-          socket.on('votingDone', (data) => {
-              handleNextBtn();
-          });
-  
-          return () => {
-              socket.off('guessVotingDone');
-          };
-      }
-  }, [socket]);
  
     useEffect(() => {
       if (socket) {
           socket.emit('joinRoom', { userid: socket.id, room: roomId, userName: 'User' });
+
+          socket.on('updateGuesses', (roomGuesses) => {
+            setGuesses(roomGuesses);
+          });
+
+          socket.on('updateUserList', (users) => {
+            setPlayers(users);
+          });
+
+          socket.on('votingDone', (data) => {
+            handleNextBtn();
+          });
 
           socket.on('gameStarted', () => {
               // Handle game start logic
@@ -87,30 +105,22 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses}) {
           });
 
           return () => {
+              socket.off('updateUserList');
+              socket.off('updateGuesses');
+              socket.off('guessVotingDone');
               socket.off('gameStarted');
               socket.off('error');
           };
       }
-    }, [socket, roomId]);
+    }, [socket, roomId, setGuesses, setPlayers]);
 
     const changeGuesses = useCallback((e) => {
-      do{
-        if(socket){
-          setGuesses(guesses.map((guess) => {
-              if(guess.voterIds.find((voterId) => voterId === socket.id)){
-                let index = guess.voterIds.indexOf(socket.id);
-                guess.voterIds.splice(index, 1);
-              }
-          }));
-          setGuesses(guesses.map((guess) => {
-            if(guess.userId === e.key){
-              guess.voterIds[guess.voterIds.length] = [{voterId: socket.id}];
-            }
-          }));
-        }
-      } while (!socket);
+      setAuthorId(e.key);
+      if(socket){
+        setVoterId(socket.id);
+        socket.emit('changeGuesses', {room: roomId, authorId: authorId, voterId: voterId});
+      }
     });
-
 
     const handleNextBtn = useCallback(() => {
       setViewNext(true);
