@@ -31,6 +31,10 @@ function Drawing({ viewCurr, setViewCurr, setViewNext, isHost, setIsHost, player
                 const currentArtist = users.find((user) => user.isHost);
                 setArtist(currentArtist);
             });
+    
+            socket.on('updateGuesses', (roomGuesses) => {
+                setGuesses(roomGuesses);
+            });
 
             socket.on('drawingPrivilege', (hasPrivilege) => {
                 setIsHost(hasPrivilege);
@@ -47,16 +51,23 @@ function Drawing({ viewCurr, setViewCurr, setViewNext, isHost, setIsHost, player
             socket.on('error', (errorMessage) => {
                 console.error(errorMessage);
             });
-
+    
+            socket.on('currentCategory', (selectedCategory) => {
+                setCategory({ category: selectedCategory });
+            });
+            // Request the current category when the component mounts
+            socket.emit('requestCurrentCategory', roomId);
+    
             return () => {
                 socket.off('updateUserList');
+                socket.off('updateGuesses');
                 socket.off('drawingPrivilege');
                 socket.off('currentCategory');
                 socket.off('gameStarted');
                 socket.off('error');
             };
         }
-    }, [socket, roomId, setIsHost]);
+    }, [socket, roomId, setIsHost, setArtist, setGuesses, setPlayers, setCategory]);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -90,9 +101,64 @@ function Drawing({ viewCurr, setViewCurr, setViewNext, isHost, setIsHost, player
         setViewCurr(false);
         setCounter(180);
     }, [setViewCurr, setViewNext, setCounter]);
-
+    //Word retrieval 
     useEffect(() => {
-        if (counter <= 0) {
+
+        setRound(round+1);
+        //converts roomID to a number, add round
+        function seedGeneration() {
+            let num = "";
+            for (let i = 0; i < roomId.length; i++) {
+              num += roomId.charCodeAt(i);
+            }
+            let number = parseInt(num);
+            return number+round;
+        }
+        let seed = seedGeneration();
+
+        //let theCategory="animals";
+        let theCategory= category.category;
+        
+
+        async function fetchWord() {
+            //swap Url on deployment (back end url)
+            const response = await fetch(`${EXPRESS_SERVER_URL}words?seed=${seed}&category=${theCategory}`);
+            console.log(response);
+
+            const word = await response.json();
+            console.log(`Drawing.js fetchWord: ${word}`);
+            setWord(word);
+        }
+        fetchWord().catch(console.dir);
+        // console.log("THIS IS BEING CALLED");
+        //}
+
+    },[isHost,roomId,category]);
+
+
+    // Note for testing: make sure you only try to submit the drawing of the current artist
+    function submitGuess () {
+        if(socket){
+            if(view){
+                // use vanilla js to query the div's value (which is set to the word)
+                const guess = document.getElementById("grab-me!").getAttribute("value");
+                console.log(`Drawing.js guess: ${guess}`);
+                socket.emit('submitGuess', {room: roomId, guess: guess});
+            }
+            else { 
+                const guess = document.getElementById("guess").value;
+                if(isDrawingSubmitted && !isGuessSubmitted) {
+                    socket.emit('submitGuess', {room: roomId, guess: guess});
+                    setIsGuessSubmitted(true);
+                    socket.emit('guessSubmitted', { room: roomId });
+                }
+            }
+        }
+    }
+
+    
+    useEffect(() => {
+        if (counter <= 0 && !(isDrawingSubmitted)) {
             submitDrawing();
         }
     }, [counter, viewCurr, submitDrawing]);
@@ -147,8 +213,8 @@ function Drawing({ viewCurr, setViewCurr, setViewNext, isHost, setIsHost, player
                     <div className="col-start-2 col-span-2">
                         <p className="sub-header">Fictionary</p>
                         <p className="pb-4">Room: {roomId}</p>
-                        <p className="header">CATEGORY IS:</p>
-                        <p className="large-text">{category.category}</p>
+                        <p className="header" id="grab-me!" value={word} >WORD IS:</p>{/*Change to word -> return word */}
+                        <p className="large-text">{word}</p>
                     </div>
                     <p className="timer">{timer}</p>
 
