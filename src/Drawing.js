@@ -39,6 +39,10 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                 setArtist(currentArtist);
             });
     
+            socket.on('updateGuesses', (roomGuesses) => {
+                setGuesses(roomGuesses);
+            });
+
             socket.on('drawingPrivilege', (hasPrivilege) => {
                 setIsHost(hasPrivilege);
             });
@@ -56,20 +60,21 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
             });
     
             socket.on('currentCategory', (selectedCategory) => {
-  setCategory({ category: selectedCategory });
-});
+                setCategory({ category: selectedCategory });
+            });
             // Request the current category when the component mounts
             socket.emit('requestCurrentCategory', roomId);
     
             return () => {
                 socket.off('updateUserList');
+                socket.off('updateGuesses');
                 socket.off('drawingPrivilege');
                 socket.off('currentCategory');
                 socket.off('gameStarted');
                 socket.off('error');
             };
         }
-    }, [socket, roomId, setIsHost]);
+    }, [socket, roomId, setIsHost, setArtist, setGuesses, setPlayers, setCategory]);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -128,7 +133,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
             console.log(response);
 
             const word = await response.json();
-            console.log(word);
+            console.log(`Drawing.js fetchWord: ${word}`);
             setWord(word);
         }
         fetchWord().catch(console.dir);
@@ -139,24 +144,23 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
 
 
     // Note for testing: make sure you only try to submit the drawing of the current artist
-    function submitGuess(){
-        do{
-            if(socket){
-                if(view){
-                    setGuesses([...guesses, {text: category.category, userId: socket.id, voterIds: []}]);
-                }
-                else { 
-                   const guess = document.getElementById("guess").value;
-                  if(isDrawingSubmitted && !isGuessSubmitted) {
-                   setGuesses([...guesses, {text: guess, userId: socket.id, voterIds: []}]);
-                   setIsGuessSubmitted(true);
-                   socket.emit('guessSubmitted', { room: roomId });
-        }
-                  
-             
+    function submitGuess () {
+        if(socket){
+            if(view){
+                // use vanilla js to query the div's value (which is set to the word)
+                const guess = document.getElementById("grab-me!").getAttribute("value");
+                console.log(`Drawing.js guess: ${guess}`);
+                socket.emit('submitGuess', {room: roomId, guess: guess});
+            }
+            else { 
+                const guess = document.getElementById("guess").value;
+                if(isDrawingSubmitted && !isGuessSubmitted) {
+                    socket.emit('submitGuess', {room: roomId, guess: guess});
+                    setIsGuessSubmitted(true);
+                    socket.emit('guessSubmitted', { room: roomId });
                 }
             }
-        } while (!socket);
+        }
     }
 
     //placeholder until the drawing can actually be sent to the backend
@@ -171,7 +175,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
 
     
     useEffect(() => {
-        if (counter <= 0) {
+        if (counter <= 0 && !(isDrawingSubmitted)) {
             submitDrawing();
         }
     }, [counter, viewCurr, submitDrawing]);
@@ -238,7 +242,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                     <div className="col-start-2 col-span-2 px-12">
                         <p className="sub-header">Fictionary</p>
                         <p className="pb-4">Room: {roomId}</p>
-                        <p className="header">WORD IS:</p>{/*Change to word -> return word */}
+                        <p className="header" id="grab-me!" value={word} >WORD IS:</p>{/*Change to word -> return word */}
                         <p className="large-text">{word}</p>
                     </div>
                     <p className="timer">{timer}</p>

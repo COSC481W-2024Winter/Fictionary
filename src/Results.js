@@ -11,15 +11,15 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     // Note: moved variables to Room.js
     // const [guesses, setGuesses] = useState([
-    //     {userId: "user_1", votes: 3, voterIds: [{voterId: "user_3"}, {voterId: "user_6"}, {voterId: "user_9"}]},
-    //     {userId: "user_2", votes: 0, voterIds: []},
-    //     {userId: "user_3", votes: 0, voterIds: []},
-    //     {userId: "user_4", votes: 0, voterIds: []},
-    //     {userId: "user_5", votes: 0, voterIds: []},
-    //     {userId: "user_6", votes: 1, voterIds: [{voterId: "user_5"}]},
-    //     {userId: "user_7", votes: 0, voterIds: []},
-    //     {userId: "user_8", votes: 0, voterIds: []},
-    //     {userId: "user_9", votes: 4, voterIds: [{voterId: "user_2"}, {voterId: "user_4"}, {voterId: "user_7"}]}
+    //     {text: "one", userId: "user_1", voterIds: [{voterId: "user_3"}, {voterId: "user_6"}, {voterId: "user_9"}]},
+    //     {text: "two", userId: "user_2", voterIds: []},
+    //     {text: "three", userId: "user_3", voterIds: []},
+    //     {text: "four", userId: "user_4", voterIds: []},
+    //     {text: "five", userId: "user_5", voterIds: []},
+    //     {text: "six", userId: "user_6", voterIds: [{voterId: "user_5"}]},
+    //     {text: "seven", userId: "user_7", voterIds: []},
+    //     {text: "eight", userId: "user_8", voterIds: []},
+    //     {text: "nine", userId: "user_9", voterIds: [{voterId: "user_2"}, {voterId: "user_4"}, {voterId: "user_7"}]}
     // ]);
     // const [players, setPlayers] = useState([
     //     {id: "user_1", name: "user_one", isHost: true, totalScore: 6, trickScore: 0, artScore: 6},
@@ -51,6 +51,10 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                     setPlayers(UpdatedPlayers);
                     setScore(players.find((player) => player.id === socket.id).totalScore);
                 });
+
+                socket.on('updateGuesses', (roomGuesses) => {
+                    setGuesses(roomGuesses);
+                });
       
                 socket.on('gameStarted', () => {
                     // Handle game start logic
@@ -62,15 +66,16 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
       
                 return () => {
                     socket.off('updateUserList');
+                    socket.off('updateGuesses');
                     socket.off('gameStarted');
                     socket.off('error');
                 };
             }
-        }, [socket, roomId]);
+        }, [socket, roomId, setGuesses, setPlayers, setScore]);
         
         useEffect(() => {
             findCorrect();
-        });
+        }, []);
     
     function MyCanvas() {
         return (
@@ -130,7 +135,7 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 socket.off('resultsDone');
             };
         }
-    }, [socket]);
+    }, [socket, handleNextBtn]);
 
     return(
         <div className="background pt-4 custom-text min-h-screen max-h-max">
