@@ -86,7 +86,22 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
             ></canvas>
         );
     }
-
+    socket.emit('getCanvas', {room: roomId});
+    useEffect(() => {
+      if (socket) {
+          socket.on('returnCanvas', (canvasImg) => {
+              const container = document.getElementById('image-container');
+              container.innerHTML = '';
+              const imgElement = new Image();
+              imgElement.src = 'data:image/png;base64,' + canvasImg;
+              container.appendChild(imgElement);
+          });
+ 
+          return () => {
+              socket.off('returnCanvas');
+          };
+      }
+  }, [socket]);
     function BonusMessage() {
         if(correct.length > 0){
             return (
@@ -129,7 +144,11 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
             <p className="large-text text-left ml-4">Fictionary</p>
             <div className="grid lg:grid-cols-2 lg:grid-rows-1 sm:grid-rows-2 p-0 m-0 justify-items-stretch">
                 <div className="flex flex-col justify-center items-center max-h-[80vh] p-0 m-4">
-                    <MyCanvas />
+                <div id = "image-container" 
+              style={{ width: '443px', height: '350px' }}
+              className='bg-white shadow-lg border-2 border-gray-300 m-10'>
+          
+              </div>
                     <p className="my-2">Category was</p>
                     <p className="large-text">{category}</p>
                 </div>

@@ -44,7 +44,10 @@ const Canvas = () => {
   return (
     <div>
       <canvas
-      className="canvas w-11/12 h-11/12"
+      id='my-canvas'
+      width={443}
+      height={350}
+      className="bg-white shadow-lg border-2 border-gray-300 m-10"
       ></canvas>
     </div>
   );
@@ -121,6 +124,22 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
         socket.emit('changeGuesses', {room: roomId, authorId: authorId, voterId: voterId});
       }
     });
+    socket.emit('getCanvas', {room: roomId});
+    useEffect(() => {
+      if (socket) {
+          socket.on('returnCanvas', (canvasImg) => {
+              const container = document.getElementById('image-container');
+              container.innerHTML = '';
+              const imgElement = new Image();
+              imgElement.src = 'data:image/png;base64,' + canvasImg;
+              container.appendChild(imgElement);
+          });
+ 
+          return () => {
+              socket.off('returnCanvas');
+          };
+      }
+  }, [socket]);
 
     const handleNextBtn = useCallback(() => {
       setViewNext(true);
@@ -138,8 +157,10 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
           </div>
         
           <div className="w-full mx-auto flex flex-row items-center">
-              <div className="basis-1/2">
-                <Canvas />
+              <div id = "image-container" 
+              style={{ width: '443px', height: '350px' }}
+              className='bg-white shadow-lg border-2 border-gray-300 m-10'>
+          
               </div>
               <div className="basis-1/2">
                 <p className='header'>CATEGORY IS</p> <br />
