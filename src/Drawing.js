@@ -6,6 +6,9 @@ import './output.css';
 var theView;
 var globalBrushSize;
 var globalPaintColor;
+var globalChatMessage;
+var globalFullText = "";
+var globalButtonPressed = false;
 
 const EXPRESS_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER_URL;
 
@@ -204,11 +207,18 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
     }, [socket, handleNextBtn]);
     
     function sendMessage() { 
-        const messageInput = document.getElementById("message");
-        const message = messageInput.value;
-        if (message.trim() !== '') {
-            socket.emit('sendMessage', { room: roomId, message });
-            messageInput.value = '';
+        var playerHold
+        if(players !== null)
+            playerHold = players.find((player) => player.id === socket.id);
+        else
+            playerHold = "null"
+
+        globalChatMessage = document.getElementById("message").value;
+        if (globalChatMessage.length > 0) {
+            socket.emit('sendMessage', { room: roomId, chat: (playerHold.name + ": " + globalChatMessage)});
+            // messageInput.value = '';
+            document.getElementById("message").value = "";
+            globalButtonPressed = true;
         }
     }
      // Used for changing brushSize and paintColor
@@ -309,8 +319,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                 </div>
                 
                 <div className = "col-start-4 row-span-2">
-                    {/*placeholder until the actual chatroom can be displayed*/}
-                    <p className="bg-[#6f5643] text-[#ece6c2] size-full">Chat Room</p>
+                    <div className="bg-[#6f5643] text-[#ece6c2] size-full" style={{overflowY: "auto", overflowX: "auto", height: 200}}><MyChat/></div>
                     <div>
                         <form>
                             <p>
@@ -328,6 +337,40 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                 </form>
             </div>
         </div>
+    );
+}
+
+function MyChat() {
+    const { socket } = useSocket();
+
+    useEffect(() => {
+        if(socket){
+            socket.on('getChat', (chatLogToString) => {
+                // const theChat = chat;
+                // globalFullText = JSON.stringify(theChat);
+                globalFullText = JSON.stringify(chatLogToString)
+                globalFullText = globalFullText.replace(/\\n/g, '\n');
+                globalFullText = globalFullText.slice(1);
+                globalFullText = globalFullText.slice(0, globalFullText.length-1)
+            });
+
+            return () => {
+                socket.off('getChat');
+            };
+        }
+    }, [socket]);
+
+    if(globalButtonPressed)
+    {
+        // messages[messages.length] = "Test_User_1: " + globalChatMessage + "\n";
+        // globalFullText += messages[messages.length-1];
+        globalButtonPressed = false;
+        // console.log(globalFullText);
+
+    }
+
+    return(
+        <p style={{whiteSpace: 'pre-wrap', textAlign: "left", paddingLeft: 10}}>{globalFullText}</p>
     );
 }
 
