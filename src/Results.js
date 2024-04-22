@@ -66,6 +66,12 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 socket.on('error', (errorMessage) => {
                     console.error(errorMessage);
                 });
+
+                socket.on('currentCategory', (selectedCategory) => {
+                    setCategory({ category: selectedCategory });
+                });
+                // Request the current category when the component mounts
+                socket.emit('requestCurrentCategory', roomId);
       
                 return () => {
                     socket.off('updateUserList');
@@ -134,7 +140,7 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 <div className="flex flex-col justify-center items-center max-h-[80vh] p-0 m-4">
                     <MyCanvas />
                     <p className="my-2">Category was</p>
-                    <p className="large-text">{category}</p>
+                    <p className="large-text">{category.category}</p>
                 </div>
                 <div className="flex flex-col items-center gap-4">
                     <p className="large-text">Everyone's Guesses</p>
