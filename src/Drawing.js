@@ -172,9 +172,12 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
 
     //placeholder until the drawing can actually be sent to the backend
     const submitDrawing = useCallback(() => {
+        const canvas = document.getElementById('my-canvas');
+        const dataURL = canvas.toDataURL();
+        const base64 = getBase64StringFromDataURL(dataURL);
         submitGuess();
         setIsDrawingDisabled(true);
-        socket.emit('drawingSubmitted', { room: roomId })
+        socket.emit('drawingSubmitted', { room: roomId, base64: base64})
     }, [roomId, socket]);
 
     
@@ -240,6 +243,8 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
         globalPaintColor = paintColor;
         globalBrushSize = brushSize;
     });
+    const getBase64StringFromDataURL = (dataURL) =>
+    dataURL.replace('data:', '').replace(/^.+,/, '');
 
     if (view) {
         return (
@@ -295,7 +300,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                         </section>
                     </form>
 
-                    <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas/></div>
+                    <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas canvasId="my-canvas"/></div>
 
                     <div onClick={submitDrawing} disabled={isDrawingDisabled} className="brown-button w-fit col-start-4 row-start-3" >Submit Drawing</div>
                 </div>
@@ -378,7 +383,7 @@ function MyChat() {
     );
 }
 
-function MyCanvas() {
+function MyCanvas({ canvasId }) {
     const { roomId } = useParams();
     const canvasRef = useRef(null);
     const [drawing, setDrawing] = useState(false);
@@ -459,9 +464,10 @@ function MyCanvas() {
     return (
         <canvas
             ref={canvasRef}
+            id={canvasId}
             width={443}
             height={350}
-            className="bg-white shadow-lg border-2 border-gray-300 m-10 h-11/12 w-11/12"
+            className="bg-white shadow-lg border-2 border-gray-300 m-10"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
