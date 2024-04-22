@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSocket } from './context/SocketContext';
 
+const EXPRESS_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER_URL;
 
-function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGuesses, roundCount, setRoundCount }) {
+function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGuesses, roundCount, setRoundCount,  round, setRound, theWord }) {
 
     const { roomId } = useParams();
     const { socket } = useSocket();
-    const category = "a nothingburger";
+    //const category = "a nothingburger"; //CHANGE
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+    const [category, setCategory] = useState({ category: "Animals" });
+    const [word, setWord] = useState();
     // Note: moved variables to Room.js
     // const [guesses, setGuesses] = useState([
     //     {text: "one", userId: "user_1", voterIds: [{voterId: "user_3"}, {voterId: "user_6"}, {voterId: "user_9"}]},
