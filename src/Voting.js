@@ -74,6 +74,7 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
     const { socket } = useSocket();
     const [authorId, setAuthorId] = useState(null);
     const [voterId, setVoterId] = useState(null);
+    const [category, setCategory] = useState({ category: "Animals" });
   
     const handleVoteSubmit = () => {
       setIsButtonDisabled(true);
@@ -107,6 +108,14 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
               console.error(errorMessage);
           });
 
+          //get category
+          socket.on('currentCategory', (selectedCategory) => {
+            setCategory({ category: selectedCategory });
+          });
+          
+          // Request the current category when the component mounts
+          socket.emit('requestCurrentCategory', roomId);
+
           return () => {
               socket.off('updateUserList');
               socket.off('updateGuesses');
@@ -115,7 +124,7 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
               socket.off('error');
           };
       }
-    }, [socket, roomId, setGuesses, setPlayers]);
+    }, [socket, roomId, setGuesses, setPlayers,setCategory]);
 
     const changeGuesses = useCallback((e) => {
       setAuthorId(e.key);
@@ -164,7 +173,7 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
               </div>
               <div className="basis-1/2">
                 <p className='header'>CATEGORY IS</p> <br />
-                <p className='sub-header'>CATEGORY</p>
+                <p className='sub-header'>{category.category}</p>{/* REPLACE */}
                 <div className="grid xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 gap-4 shrink justify-center items-center">
                   {guesses.map((guess) => <button onclick={changeGuesses} className="yellow-button m-2 w-24 h-16" id="test" key={guess.userId}>{guess.text}</button>)}
                 </div>

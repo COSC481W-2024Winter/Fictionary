@@ -111,6 +111,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
         setViewCurr(false);
         setCounter(180);
     }, [setViewCurr, setViewNext, setCounter]);
+
     //Word retrieval 
     useEffect(() => {
 
@@ -143,7 +144,10 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
         // console.log("THIS IS BEING CALLED");
         //}
 
-    },[isHost,roomId,category]);
+        //Attempt setting word
+        //socket.emit('sendWord', { roomId: roomId, word: word });
+
+    },[roomId,category]);//[isHost,roomId,category]
 
 
     // Note for testing: make sure you only try to submit the drawing of the current artist

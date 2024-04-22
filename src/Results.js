@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSocket } from './context/SocketContext';
 
+const EXPRESS_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER_URL;
 
-function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGuesses, roundCount, setRoundCount }) {
+function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGuesses, roundCount, setRoundCount,  round, setRound, theWord }) {
 
     const { roomId } = useParams();
     const { socket } = useSocket();
-    const category = "a nothingburger";
+    //const category = "a nothingburger"; //CHANGE
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+    const [category, setCategory] = useState({ category: "Animals" });
+    const [word, setWord] = useState();
     // Note: moved variables to Room.js
     // const [guesses, setGuesses] = useState([
     //     {text: "one", userId: "user_1", voterIds: [{voterId: "user_3"}, {voterId: "user_6"}, {voterId: "user_9"}]},
@@ -63,6 +66,12 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 socket.on('error', (errorMessage) => {
                     console.error(errorMessage);
                 });
+
+                socket.on('currentCategory', (selectedCategory) => {
+                    setCategory({ category: selectedCategory });
+                });
+                // Request the current category when the component mounts
+                socket.emit('requestCurrentCategory', roomId);
       
                 return () => {
                     socket.off('updateUserList');
@@ -150,7 +159,7 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
           
               </div>
                     <p className="my-2">Category was</p>
-                    <p className="large-text">{category}</p>
+                    <p className="large-text">{category.category}</p>
                 </div>
                 <div className="flex flex-col items-center gap-4">
                     <p className="large-text">Everyone's Guesses</p>
