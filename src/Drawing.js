@@ -158,11 +158,16 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                 const guess = document.getElementById("grab-me!").getAttribute("value");
                 console.log(`Drawing.js guess: ${guess}`);
                 socket.emit('submitGuess', {room: roomId, guess: guess});
+                //Debug - check what is sent for guess
+                console.log("Drawing.js - add guess(host): "+ 'Room:', roomId, 'guess:', guess);
             }
             else { 
                 const guess = document.getElementById("guess").value;
                 if(isDrawingSubmitted && !isGuessSubmitted) {
                     socket.emit('submitGuess', {room: roomId, guess: guess});
+
+                    //Debug - check what is sent for guess
+                    console.log("Drawing.js - add guess: "+ 'Room:', roomId, 'guess:', guess);
                     setIsGuessSubmitted(true);
                     socket.emit('guessSubmitted', { room: roomId });
                 }

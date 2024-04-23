@@ -44,15 +44,21 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 setCorrect(guess.voterIds.map(voterId => (players.find((player) => player.id === voterId.voterId)).name));
             }
         });
+        //print guesses : voters IDs are empty
+        console.log("Result.js -Guesses: "+JSON.stringify(guesses, null, 2));
     }
 
     useEffect(() => {
             if (socket) {
                 socket.emit('joinRoom', { userid: socket.id, room: roomId, userName: 'User' });
 
+                //this is not being called
                 socket.on('updateUserList', (UpdatedPlayers) => {
                     setPlayers(UpdatedPlayers);
                     setScore(players.find((player) => player.id === socket.id).totalScore);
+                    // Debug - print user list
+                    //console.log(JSON.stringify(players, null, 2));
+                    console.log('Results.js - Updated user list response:', UpdatedPlayers);//response 
                 });
 
                 socket.on('updateGuesses', (roomGuesses) => {

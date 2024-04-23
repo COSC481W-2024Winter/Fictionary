@@ -82,6 +82,9 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
         socket.emit('updateScores', {room: roomId, authorId: authorId, voterId: voterId});
       }
       socket.emit('voteSubmitted', { room: roomId});
+      //Debug: check for voter ID?
+      //Note: sending null authorID and null VoterID
+      console.log("Voting.js: - sending score update: "+ 'Room:', roomId, 'Author ID:', authorId, 'Voter ID:', voterId);
     }
  
     useEffect(() => {
@@ -94,6 +97,8 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
 
           socket.on('updateUserList', (users) => {
             setPlayers(users);
+            //Debug 
+            console.log("Voting.js - Updated user list response: "+users)
           });
 
           socket.on('votingDone', (data) => {
@@ -126,13 +131,24 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
       }
     }, [socket, roomId, setGuesses, setPlayers,setCategory]);
 
+    //Change guesses is not being called at all
     const changeGuesses = useCallback((e) => {
+      console.log("Change guesses IS being called ");
+      //e is the button?
+      console.log("button id(who made it): "+e.key);
       setAuthorId(e.key);
       if(socket){
+
+        //voter id?
+        console.log("Voter id: "+socket.id);
         setVoterId(socket.id);
+        //Debug: check for voter ID?
+        //Note: sending null authorID and null VoterID
+        console.log("Voting.js: - sending guess change: "+ 'Room:', roomId, 'Author ID:', authorId, 'Voter ID:', voterId);
         socket.emit('changeGuesses', {room: roomId, authorId: authorId, voterId: voterId});
       }
     });
+
     socket.emit('getCanvas', {room: roomId});
     useEffect(() => {
       if (socket) {
@@ -175,7 +191,7 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
                 <p className='header'>CATEGORY IS</p> <br />
                 <p className='sub-header'>{category.category}</p>{/* REPLACE */}
                 <div className="grid xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 gap-4 shrink justify-center items-center">
-                  {guesses.map((guess) => <button onclick={changeGuesses} className="yellow-button m-2 w-24 h-16" id="test" key={guess.userId}>{guess.text}</button>)}
+                  {guesses.map((guess) => <button onClick={changeGuesses} className="yellow-button m-2 w-24 h-16" id="test" key={guess.userId}>{guess.text}</button>)}
                 </div>
               </div>
               <div className="flex justify-center brown-button">
