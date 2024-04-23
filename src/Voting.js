@@ -159,6 +159,9 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
         setVoterId(socketId);
 
         socket.emit('changeGuesses', {room: roomId, authorId: authorId, voterId: voterId});
+        //Debug
+        console.log("Voting.js - change guess emit: "+ 'Room:', roomId, 'authorID:', e.target.getAttribute("value"), 'voterId:',socketId);
+                    
       }
     };
 
