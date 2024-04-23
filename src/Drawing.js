@@ -13,14 +13,14 @@ var globalButtonPressed = false;
 const EXPRESS_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER_URL;
 
 
-function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players, setPlayers, guesses, setGuesses, usedIndexes, setUsedIndexes, round, setRound}){
+function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players, setPlayers, guesses, setGuesses, usedIndexes, setUsedIndexes, round, setRound, word, setWord}){
     const { roomId } = useParams();
     // const [tricksters, setTricksters] = useState(["user_1", "user_2", "user_4", "user_5", "user_6", "user_7", "user_8", "user_9"]);
     const [category, setCategory] = useState({ category: "Animals" });
     const [view, setView] = useState(isHost);
     const [artist, setArtist] = useState({});
     const { socket } = useSocket();
-    const [word, setWord] = useState();
+    // const [word, setWord] = useState();
 
     theView = view;
     const [paintColor, setPaintColor] = useState('black');

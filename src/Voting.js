@@ -80,9 +80,18 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
       setIsButtonDisabled(true);
       if(!(authorId === null || voterId === null)){
         socket.emit('updateScores', {room: roomId, authorId: authorId, voterId: voterId});
+        console.log(`Voting.js: handleVoteSubmit()`);
       }
       socket.emit('voteSubmitted', { room: roomId});
     }
+
+    const handleNextBtn = useCallback(() => {
+      setViewNext(true);
+      setViewCurr(false);
+      setSeconds(60);
+      /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
+      // setSeconds(10);
+    }, [setViewCurr, setViewNext, setSeconds]);
  
     useEffect(() => {
       if (socket) {
@@ -97,6 +106,14 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
           });
 
           socket.on('votingDone', (data) => {
+            console.log(`Voting.js votingDone`);
+            console.log(`Voting.js authorId: ${authorId}, voterId: ${voterId}`)
+
+            if(!(authorId === null || voterId === null)){
+              socket.emit('updateScores', {room: roomId, authorId: authorId, voterId: voterId});
+              console.log(`Voting.js: handleVoteSubmit() via votingDone`);
+            }
+
             handleNextBtn();
           });
 
@@ -124,15 +141,31 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
               socket.off('error');
           };
       }
-    }, [socket, roomId, setGuesses, setPlayers,setCategory]);
+    }, [socket, roomId, setGuesses, setPlayers,setCategory, handleNextBtn, authorId, voterId]);
 
-    const changeGuesses = useCallback((e) => {
-      setAuthorId(e.key);
+    const changeGuesses = (e) => {
+      // e.stopPropagation();
+      console.log(`Voting.js changeGuesses e.target.value ${e.target.getAttribute("value")}`);
+      setAuthorId(e.target.getAttribute("value"));
       if(socket){
-        setVoterId(socket.id);
+        const socketId = socket.emit("greatDocumentation").id;
+        console.log(`Voting.js changeGuesses socket.id ${socketId}`);
+        setVoterId(socketId);
+
         socket.emit('changeGuesses', {room: roomId, authorId: authorId, voterId: voterId});
       }
-    });
+    };
+
+    // const changeGuesses = useCallback((e) => {
+    //   console.log(`Voting.js changeGuesses e.target.value ${e.target.getAttribute("value")}`);
+    //   setAuthorId(e.target.getAttribute("value"));
+    //   if(socket){
+    //     console.log(`Voting.js changeGuesses socket.id ${socket.id}`);
+    //     setVoterId(socket.id);
+    //     socket.emit('changeGuesses', {room: roomId, authorId: authorId, voterId: voterId});
+    //   }
+    // }, [socket, authorId, roomId, voterId]);
+
     socket.emit('getCanvas', {room: roomId});
     useEffect(() => {
       if (socket) {
@@ -149,14 +182,6 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
           };
       }
   }, [socket]);
-
-    const handleNextBtn = useCallback(() => {
-      setViewNext(true);
-      setViewCurr(false);
-      setSeconds(60);
-      /* FOR TESTING COMMENT OUT ABOVE LINE, UNCOMMENT BELOW LINE */
-      // setSeconds(10);
-    }, [setViewCurr, setViewNext, setSeconds]);
 
     return (
       <div className="background custom-text">
@@ -175,7 +200,7 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
                 <p className='header'>CATEGORY IS</p> <br />
                 <p className='sub-header'>{category.category}</p>{/* REPLACE */}
                 <div className="grid xl:grid-cols-4 lg:grid-cols-3 sm:grid-cols-2 gap-4 shrink justify-center items-center">
-                  {guesses.map((guess) => <button onclick={changeGuesses} className="yellow-button m-2 w-24 h-16" id="test" key={guess.userId}>{guess.text}</button>)}
+                  {guesses.map((guess) => <button onClick={changeGuesses} className="yellow-button m-2 w-24 h-16" id="test" key={guess.userId} value={guess.userId} >{guess.text}</button>)}
                 </div>
               </div>
               <div className="flex justify-center brown-button">
