@@ -35,12 +35,29 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
     // ]);
 
     function findCorrect(){
-        guesses.map( guess => {
-            if(guesses != [] && players.find((player) => player.id === guess.userId).isHost){
-                setCorrect(guess.voterIds.map(voterId => (players.find((player) => player.id === voterId.voterId)).name));
+        const names = []
+        const idx = [];
+
+        for (let i = 0; i < guesses.length; i++) {
+            if (guesses[i].text === word) {
+                idx.push(i);
             }
-        });
-        //print guesses : voters IDs are empty
+        }
+        console.log(`Results.js findCorrect() idx: ${idx.join(", ")}`);
+
+        for (let k = 0; k < idx.length; k++) {
+            for (let i = 0; i < guesses[k].voterIds.length; i++) {
+                const id = guesses[k].voterIds[i];
+    
+                for (let j = 0; j < players.length; j++) {
+                    if (players[j].id === id) {
+                        names.push(players[j].name);
+                    }
+                }
+            }
+        }
+        console.log(`Results.js findCorrect() names: ${names.join(", ")}`);
+        setCorrect(names);
         console.log("Result.js -Guesses: "+JSON.stringify(guesses, null, 2));
     }
 
@@ -54,10 +71,16 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
 
                 socket.emit('joinRoom', { userid: socket.id, room: roomId, userName: 'User' });
 
+                const socketId = socket.emit("greatDocumentation").id;
+                console.log(`Results.js setScore socketId ${socketId}`);
+                setScore(players.find((player) => player.id === socketId).totalScore);
+
                 //this is not being called
                 socket.on('updateUserList', (UpdatedPlayers) => {
                     setPlayers(UpdatedPlayers);
-                    setScore(players.find((player) => player.id === socket.id).totalScore);
+                    const socketId = socket.emit("greatDocumentation").id;
+                    console.log(`Results.js setScore socketId ${socketId}`);
+                    setScore(players.find((player) => player.id === socketId).totalScore);
                     // Debug - print user list
                     //console.log(JSON.stringify(players, null, 2));
                     console.log('Results.js - Updated user list response:', UpdatedPlayers);//response 
@@ -80,6 +103,8 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 });
                 // Request the current category when the component mounts
                 socket.emit('requestCurrentCategory', roomId);
+
+                findCorrect();
       
                 return () => {
                     socket.off('updateUserList');
@@ -90,9 +115,9 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
             }
         }, [socket, roomId, setGuesses, setPlayers, setScore, players]);
         
-        useEffect(() => {
-            findCorrect();
-        }, []);
+        // useEffect(() => {
+        //     findCorrect();
+        // }, []);
     
     function MyCanvas() {
         return (

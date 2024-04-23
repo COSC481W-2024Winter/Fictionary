@@ -112,12 +112,12 @@ function Voting({viewCurr, setViewCurr, setViewNext, guesses, setGuesses, player
 
           socket.on('votingDone', (data) => {
             console.log(`Voting.js votingDone`);
-            console.log(`Voting.js authorId: ${authorId}, voterId: ${voterId}`)
+            // console.log(`Voting.js authorId: ${authorId}, voterId: ${voterId}`)
 
-            if(!(authorId === null || voterId === null)){
-              socket.emit('updateScores', {room: roomId, authorId: authorId, voterId: voterId});
-              console.log(`Voting.js: handleVoteSubmit() via votingDone`);
-            }
+            // if(!(authorId === null || voterId === null)){
+            //   socket.emit('updateScores', {room: roomId, authorId: authorId, voterId: voterId});
+            //   console.log(`Voting.js: handleVoteSubmit() via votingDone`);
+            // }
 
             handleNextBtn();
           });
