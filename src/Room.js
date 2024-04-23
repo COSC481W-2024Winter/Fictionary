@@ -23,6 +23,7 @@ function Room() {
     const [usedIndexes, setUsedIndexes] = useState([]);
     const [artist, setArtist] = useState(null);
     const [viewArtist, setViewArtist] = useState(false);
+    const [word, setWord] = useState();
 
     //round counter
     const [round, setRound] = useState(0);
@@ -41,9 +42,9 @@ function Room() {
             {viewLobby && <Lobby players={players} setPlayers={setPlayers} socket={socket} setSocket={setSocket} isHost={isHost} setIsHost={setIsHost} guestName={guestName} setViewCurr={setViewLobby} setViewNext={setViewCategories} />}
             {viewCategories && <Categories viewCurr={viewCategories} setViewCurr={setViewCategories} setViewNext={setViewArtist} players={players} setPlayers={setPlayers} isHost={isHost} setIsHost={setIsHost} round={round} setRound={setRound}/>}
             {viewArtist && <Artist viewCurr={viewArtist} setViewCurr={setViewArtist} setViewNext={setViewDrawing} players={players} setPlayers={setPlayers} isHost={isHost} setIsHost={setIsHost} usedIndexes={usedIndexes}setUsedIndexes= {setUsedIndexes} artist={artist} setArtist={setArtist}/>}
-            {viewDrawing && <Drawing viewCurr={viewDrawing} setViewCurr={setViewDrawing} setViewNext={setViewVoting} players={players} setPlayers={setPlayers} guesses={guesses} setGuesses={setGuesses} isHost={isHost} setIsHost={setIsHost} usedIndexes={usedIndexes} setUsedIndexes={setUsedIndexes} artist={artist} setArtist={setArtist} socket={socket} setSocket={setSocket} round={round} setRound={setRound}/>}
+            {viewDrawing && <Drawing viewCurr={viewDrawing} setViewCurr={setViewDrawing} setViewNext={setViewVoting} players={players} setPlayers={setPlayers} guesses={guesses} setGuesses={setGuesses} isHost={isHost} setIsHost={setIsHost} usedIndexes={usedIndexes} setUsedIndexes={setUsedIndexes} artist={artist} setArtist={setArtist} socket={socket} setSocket={setSocket} round={round} setRound={setRound} word={word} setWord={setWord} />}
             {viewVoting && <Voting viewCurr={viewVoting} setViewCurr={setViewVoting} setViewNext={setViewResults} guesses={guesses} setGuesses={setGuesses} players={players} setPlayers={setPlayers}  /> }
-            {viewResults && <Results players={players} setPlayers={setPlayers} guesses={guesses} setGuesses={setGuesses} socket={socket} setSocket={setSocket} setViewCurr={setViewResults} setViewNext={setViewScoreboard} roundCount={roundCount} setRoundCount={setRoundCount} /> }
+            {viewResults && <Results players={players} setPlayers={setPlayers} guesses={guesses} setGuesses={setGuesses} socket={socket} setSocket={setSocket} setViewCurr={setViewResults} setViewNext={setViewScoreboard} roundCount={roundCount} setRoundCount={setRoundCount} word={word} /> }
             {viewScoreboard && <Scoreboard players={players} setPlayers={setPlayers} guesses={guesses} setGuesses={setGuesses} setViewCurr={setViewScoreboard} setViewNext={setViewArtist} setViewNextRound={setViewCategories} setViewFinalScore={setViewFinalScore} roundCount={roundCount} usedIndexes={usedIndexes} setRoundCount={setRoundCount} setUsedIndexes={setUsedIndexes} /> }
             {viewFinal && <FinalScore viewCurr={viewFinal} setViewCurr={setViewFinalScore} setViewNext={setViewLobby} />}
         </div>
