@@ -255,7 +255,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
         return (
             <div>
                 {/* button for testing both views */}
-                <div className="bg-[#cc6b49] text-[#ece6c2] font-sans" onClick={swapView}>Switch to "Trickster" View</div>
+                {/*<div className="bg-[#cc6b49] text-[#ece6c2] font-sans" onClick={swapView}>Switch to "Trickster" View</div>*/}
                 {/* <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas/></div> */}
                 <div className="background custom-text grid grid-cols-4 grid-rows-3">
                     <div className="col-start-2 col-span-2 px-12">
@@ -315,7 +315,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
     return (
         <div>
             {/* button for testing both views */}
-            <div className="bg-[#73bda8] text-[#6f5643] font-sans" onClick={swapView}>Switch to "Artist" View</div>
+            {/*<div className="bg-[#73bda8] text-[#6f5643] font-sans" onClick={swapView}>Switch to "Artist" View</div>*/}
 
             <div className="background custom-text grid grid-cols-4 grid-rows-4">
                 <div>
