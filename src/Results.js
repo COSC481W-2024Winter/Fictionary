@@ -4,15 +4,13 @@ import { useSocket } from './context/SocketContext';
 
 const EXPRESS_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER_URL;
 
-function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGuesses, roundCount, setRoundCount,  round, setRound, theWord }) {
-
+function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGuesses, roundCount, setRoundCount,  round, setRound, word }) {
     const { roomId } = useParams();
     const { socket } = useSocket();
-    //const category = "a nothingburger"; //CHANGE
     const [isButtonDisabled, setIsButtonDisabled] = useState(false);
     const [category, setCategory] = useState({ category: "Animals" });
-    const [word, setWord] = useState();
-    // Note: moved variables to Room.js
+    const [correct, setCorrect] = useState([]);
+    const [score, setScore] = useState(0);
     // const [guesses, setGuesses] = useState([
     //     {text: "one", userId: "user_1", voterIds: [{voterId: "user_3"}, {voterId: "user_6"}, {voterId: "user_9"}]},
     //     {text: "two", userId: "user_2", voterIds: []},
@@ -35,24 +33,57 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
     //     {id: "user_8", name: "user_eight", isHost: false, totalScore: 0, trickScore: 0, artScore: 0},
     //     {id: "user_9", name: "user_nine", isHost: false, totalScore: 5, trickScore: 4, artScore: 0}
     // ]);
-    const [correct, setCorrect] = useState([]);
-    const [score, setScore] = useState(0);
 
     function findCorrect(){
-        guesses.map( guess => {
-            if(guesses != [] && players.find((player) => player.id === guess.userId).isHost){
-                setCorrect(guess.voterIds.map(voterId => (players.find((player) => player.id === voterId.voterId)).name));
+        const names = []
+        const idx = [];
+
+        for (let i = 0; i < guesses.length; i++) {
+            if (guesses[i].text === word) {
+                idx.push(i);
             }
-        });
+        }
+        console.log(`Results.js findCorrect() idx: ${idx.join(", ")}`);
+
+        for (let k = 0; k < idx.length; k++) {
+            for (let i = 0; i < guesses[k].voterIds.length; i++) {
+                const id = guesses[k].voterIds[i];
+    
+                for (let j = 0; j < players.length; j++) {
+                    if (players[j].id === id) {
+                        names.push(players[j].name);
+                    }
+                }
+            }
+        }
+        console.log(`Results.js findCorrect() names: ${names.join(", ")}`);
+        setCorrect(names);
+        console.log("Result.js -Guesses: "+JSON.stringify(guesses, null, 2));
     }
+
 
     useEffect(() => {
             if (socket) {
+                console.log(`Results.js players`)
+                for (let i = 0; i < players.length; i++) {
+                    console.log(`id: ${players[i].id}, score: ${players[i].totalScore}`)
+                }
+
                 socket.emit('joinRoom', { userid: socket.id, room: roomId, userName: 'User' });
 
+                const socketId = socket.emit("greatDocumentation").id;
+                console.log(`Results.js setScore socketId ${socketId}`);
+                setScore(players.find((player) => player.id === socketId).totalScore);
+
+                //this is not being called
                 socket.on('updateUserList', (UpdatedPlayers) => {
                     setPlayers(UpdatedPlayers);
-                    setScore(players.find((player) => player.id === socket.id).totalScore);
+                    const socketId = socket.emit("greatDocumentation").id;
+                    console.log(`Results.js setScore socketId ${socketId}`);
+                    setScore(players.find((player) => player.id === socketId).totalScore);
+                    // Debug - print user list
+                    //console.log(JSON.stringify(players, null, 2));
+                    console.log('Results.js - Updated user list response:', UpdatedPlayers);//response 
                 });
 
                 socket.on('updateGuesses', (roomGuesses) => {
@@ -72,6 +103,8 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                 });
                 // Request the current category when the component mounts
                 socket.emit('requestCurrentCategory', roomId);
+
+                findCorrect();
       
                 return () => {
                     socket.off('updateUserList');
@@ -80,11 +113,11 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
                     socket.off('error');
                 };
             }
-        }, [socket, roomId, setGuesses, setPlayers, setScore]);
+        }, [socket, roomId, setGuesses, setPlayers, setScore, players]);
         
-        useEffect(() => {
-            findCorrect();
-        }, []);
+        // useEffect(() => {
+        //     findCorrect();
+        // }, []);
     
     function MyCanvas() {
         return (
@@ -158,8 +191,9 @@ function Results({setViewCurr, setViewNext, players, setPlayers, guesses, setGue
               className='bg-white shadow-lg border-2 border-gray-300 m-10'>
           
               </div>
-                    <p className="my-2">Category was</p>
-                    <p className="large-text">{category.category}</p>
+                    <p className="my-2">Category was {category.category}</p>
+                    <p className="large-text">Word was</p>
+                    <p className="large-text">{word}</p>
                 </div>
                 <div className="flex flex-col items-center gap-4">
                     <p className="large-text">Everyone's Guesses</p>

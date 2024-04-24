@@ -13,14 +13,14 @@ var globalButtonPressed = false;
 const EXPRESS_SERVER_URL = process.env.REACT_APP_SOCKET_SERVER_URL;
 
 
-function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players, setPlayers, guesses, setGuesses, usedIndexes, setUsedIndexes, round, setRound}){
+function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players, setPlayers, guesses, setGuesses, usedIndexes, setUsedIndexes, round, setRound, word, setWord}){
     const { roomId } = useParams();
     // const [tricksters, setTricksters] = useState(["user_1", "user_2", "user_4", "user_5", "user_6", "user_7", "user_8", "user_9"]);
     const [category, setCategory] = useState({ category: "Animals" });
     const [view, setView] = useState(isHost);
     const [artist, setArtist] = useState({});
     const { socket } = useSocket();
-    const [word, setWord] = useState();
+    // const [word, setWord] = useState();
 
     theView = view;
     const [paintColor, setPaintColor] = useState('black');
@@ -158,11 +158,16 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
                 const guess = document.getElementById("grab-me!").getAttribute("value");
                 console.log(`Drawing.js guess: ${guess}`);
                 socket.emit('submitGuess', {room: roomId, guess: guess});
+                //Debug - check what is sent for guess
+                console.log("Drawing.js - add guess(host): "+ 'Room:', roomId, 'guess:', guess);
             }
             else { 
                 const guess = document.getElementById("guess").value;
                 if(isDrawingSubmitted && !isGuessSubmitted) {
                     socket.emit('submitGuess', {room: roomId, guess: guess});
+
+                    //Debug - check what is sent for guess
+                    console.log("Drawing.js - add guess: "+ 'Room:', roomId, 'guess:', guess);
                     setIsGuessSubmitted(true);
                     socket.emit('guessSubmitted', { room: roomId });
                 }
@@ -250,7 +255,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
         return (
             <div>
                 {/* button for testing both views */}
-                <div className="bg-[#cc6b49] text-[#ece6c2] font-sans" onClick={swapView}>Switch to "Trickster" View</div>
+                {/*<div className="bg-[#cc6b49] text-[#ece6c2] font-sans" onClick={swapView}>Switch to "Trickster" View</div>*/}
                 {/* <div className="col-start-2 col-span-2 row-start-2 row-span-2"><MyCanvas/></div> */}
                 <div className="background custom-text grid grid-cols-4 grid-rows-3">
                     <div className="col-start-2 col-span-2 px-12">
@@ -310,7 +315,7 @@ function Drawing({viewCurr, setViewCurr, setViewNext,isHost, setIsHost, players,
     return (
         <div>
             {/* button for testing both views */}
-            <div className="bg-[#73bda8] text-[#6f5643] font-sans" onClick={swapView}>Switch to "Artist" View</div>
+            {/*<div className="bg-[#73bda8] text-[#6f5643] font-sans" onClick={swapView}>Switch to "Artist" View</div>*/}
 
             <div className="background custom-text grid grid-cols-4 grid-rows-4">
                 <div>
